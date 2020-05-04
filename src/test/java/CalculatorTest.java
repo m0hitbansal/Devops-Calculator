@@ -1,8 +1,11 @@
 import org.junit.Assert;
 import org.junit.Test;
-public class Calculatorjunit {
-    Calculator calculator = null;
-  @Test
+
+
+
+public class CalculatorTest {
+Calculator calculator=null;
+    @Test
     public void add() {
         calculator = new Calculator();
         int a = 60;
@@ -11,5 +14,4 @@ public class Calculatorjunit {
         int ans = calculator.add(a,b);
         Assert.assertEquals(out,ans);
     }
-
 }
