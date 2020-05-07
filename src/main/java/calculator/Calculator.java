@@ -11,16 +11,18 @@ public class Calculator {
     public static void main(String[] args) {
         Calculator calculator = new Calculator();
         Scanner scanner = new Scanner(System.in);
-        double number1, number2;
+        double number1=0.0, number2=0.0;
         do {
             System.out.println("Devops-Calculator, Choose to perform operation");
             System.out.println("Press 1 to Add\nPress 2 to Subtract\nPress 3 to Multiply\nPress 4 to Divide\n" +
                     "Press any other key to exit\nEnter your choice: ");
             int choice = scanner.nextInt();
-            System.out.print("Enter the first number : ");
-            number1 = scanner.nextDouble();
-            System.out.print("Enter the second number : ");
-            number2 = scanner.nextDouble();
+            if(choice<5 && choice>0) {
+                System.out.print("Enter the first number : ");
+                number1 = scanner.nextDouble();
+                System.out.print("Enter the second number : ");
+                number2 = scanner.nextDouble();
+            }
             switch (choice) {
                 case 1:
 
