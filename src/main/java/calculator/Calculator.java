@@ -9,6 +9,7 @@ public class Calculator {
     }
 
     public static void main(String[] args) {
+	System.out.println("Welcome to mohit bansal");
         Calculator calculator = new Calculator();
         Scanner scanner = new Scanner(System.in);
         double number1=0.0, number2=0.0;
