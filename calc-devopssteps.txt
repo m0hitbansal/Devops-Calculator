@@ -1,0 +1,83 @@
+1. Set to Java8 because rundeck uses Java8
+• sudo update-alternatives --config java
+• java -version
+
+2. Create git project and do create maven project with pom.xml and Dockerfile, ref - https://github.com/shubhamaggarwal890/calculator-devops
+
+3. Upload the git project
+
+4. Start jenkins systemctl start jenkins - localhost:8080
+
+5. Create a new pipeline project or freestyle project of your choice and add necessary details.
+
+6. Start rundeck systemctl start rundeckd - localhost:4440
+
+7. Create dockerhub repository - https://hub.docker.com/
+
+8. On to jenkins - in pipeline project add following script 
+
+pipeline {
+  environment {
+    registry = "<DockerHubUsername>/<RepositoryName>"
+    registryCredential = 'docker-hub-credentials'         // docker hub credential, stored in credential part
+    dockerImage = ''
+    dockerImageLatest = ''
+  }
+  agent any
+  stages {
+    stage('Cloning Git') {
+      steps {
+        git '<GitHubRepository URL>'
+      }
+    }
+    stage('Build Executable Jar'){
+        steps {
+             sh 'mvn clean test package'
+        }
+    }
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+          dockerImageLatest = docker.build registry + ":latest"
+        }
+      }
+    }
+    stage('Deploy Image') {
+      steps{
+        script {
+          docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+            dockerImageLatest.push()
+          }
+        }
+      }
+    }
+    stage('Remove Unused docker image') {
+      steps{
+        sh "docker rmi $registry:$BUILD_NUMBER"
+      }
+    }
+    stage('Execute Rundeck job') {
+        steps {
+          script {
+            step([$class: "RundeckNotifier",
+                  includeRundeckLogs: true,
+                  jobId: "2125a7f4-cf3c-49b7-ac45-635da518f50b",
+                  rundeckInstance: "Rundeck",
+                  shouldFailTheBuild: true,
+                  shouldWaitForRundeckJob: true,
+                  tailLog: true])
+          }
+        }
+    }
+  }
+}
+
+9. In rundeck create a new project and attach necessary details
+10. Add node to that project via resource.xml if you connecting another external node or docker reference video 1
+11. If 10, copy ~/.ssh to /var/lib/rundeck/.ssh
+12. Now add rundeck to docker group by usermod -aG docker rundeck
+13. Create a job on rundeck and add necessary details, TIP: to set a container or multiple nodes you can create another rundeck job.
+14. make sure your docker is running by systemctl status docker, if not do systemctl start docker
+15. Push the latest code on to github and hit build pipeline that would build jenkins pipeline.

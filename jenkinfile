@@ -1,0 +1,57 @@
+pipeline {
+  environment {
+    registry = "m0hitbansal/devopscalculator"
+    registryCredential = 'docker-hub-credentials'         // docker hub credential, stored in credential part
+    dockerImage = ''
+    dockerImageLatest = ''
+  }
+  agent any
+  stages {
+    stage('Cloning Git') {
+      steps {
+        git 'https://github.com/m0hitbansal/Devops-Calculator.git'
+      }
+    }
+    stage('Build Executable Jar'){
+        steps {
+             sh 'mvn clean test package'
+        }
+    }
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+          dockerImageLatest = docker.build registry + ":latest"
+        }
+      }
+    }
+    stage('Deploy Image') {
+      steps{
+        script {
+          docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+            dockerImageLatest.push()
+          }
+        }
+      }
+    }
+    stage('Remove Unused docker image') {
+      steps{
+        sh "docker rmi $registry:$BUILD_NUMBER"
+      }
+    }
+    stage('Execute Rundeck job') {
+        steps {
+          script {
+            step([$class: "RundeckNotifier",
+                  includeRundeckLogs: true,
+                  jobId: "714e6d0a-e379-4cea-85f1-456548063d4a",
+                  rundeckInstance: "Rundeck calculator",
+                  shouldFailTheBuild: true,
+                  shouldWaitForRundeckJob: true,
+                  tailLog: true])
+          }
+        }
+    }
+  }
+}
